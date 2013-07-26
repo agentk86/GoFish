@@ -382,9 +382,10 @@ def FindBooks(cards):
 
 def ShowBooks(books):
     """
+    Show books players have
     
+    books: player's book list array
     """
-    
     ShowMessage("BOOKS")
     
     for i, book in enumerate(books):
