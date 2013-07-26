@@ -179,18 +179,18 @@ def PickRandomPlayer(total, exclude):
     total: How many Players (start by 1)
     exclude:  Which palyer should be excluded from being pciked
 
-    This function return picked player's ID/index.
+    This function return hitman player's ID/index.
     """
     ## Decreased by 1 so start player index is 0 
-    picked = random.randint(1, total) - 1
+    hitman = random.randint(1, total) - 1
     
-    while(picked is exclude):
+    while(hitman is exclude):
         ## Decreased by 1 so start player index is 0 
-        picked = random.randint(1, total) - 1
+        hitman = random.randint(1, total) - 1
         
-    ## ShowMessage("Player " + str(picked) + " has been randomly picked as targeted")
+    ## ShowMessage("Player " + str(hitman) + " has been randomly hitman as targeted")
 
-    return picked
+    return hitman
 
 def EndOfCardGame(deck, hands):
     '''
@@ -210,50 +210,50 @@ def EndOfCardGame(deck, hands):
                 
     return gameover
 
-def DealTurn(turn, picked, deck, hands):  
+def DealTurn(turn, hitman, deck, hands):  
     '''
     Deal a turn
     '''
-    ShowMessage("TURN " + str(turn) + ": Player " + str(picked) + ", its your turn")
+    ShowMessage("TURN " + str(turn) + ": Player " + str(hitman) + ", its your turn")
     
     ## Show the card if hitman is a human player
-    if IsHumanPlayer(picked):
-        Sort(hands[int(picked)])
-        ShowCards(picked, hands[int(picked)])
+    if IsHumanPlayer(hitman):
+        Sort(hands[int(hitman)])
+        ShowCards(hitman, hands[int(hitman)])
     
     ## Process this turn 
-    if IsHumanPlayer(picked):
-        nextTurn = AskCardByHuman(int(picked), deck, hands)
+    if IsHumanPlayer(hitman):
+        nextTurn = AskCardByHuman(int(hitman), deck, hands)
     else:
-        nextTurn = AskCardByComputer(int(picked), deck, hands)
+        nextTurn = AskCardByComputer(int(hitman), deck, hands)
     
     return nextTurn
     
-def AskCardByComputer(picked, deck, hands):
+def AskCardByComputer(hitman, deck, hands):
     '''
     Ask a card as a computer player
     '''
-    ## By default picked player of next turn will still be current hitman
-    nextPicked = picked
+    ## By default hitman player of next turn will still be current hitman
+    nextPicked = hitman
     
     ## Randomly pick something
-    nAskHand = PickRandomPlayer(len(hands), picked)
-    nAskCard = PickRandomCard(hands[picked])
+    nAskHand = PickRandomPlayer(len(hands), hitman)
+    nAskCard = PickRandomCard(hands[hitman])
     
     ## Deal Target & Fishing
-    if not DealTarget(picked, int(nAskHand), nAskCard[:1], hands):
-        if  not DealFishing(picked, nAskCard[:1], deck, hands):
+    if not DealTarget(hitman, int(nAskHand), nAskCard[:1], hands):
+        if  not DealFishing(hitman, nAskCard[:1], deck, hands):
             nextPicked = nAskHand
             
     return nextPicked
 
-def AskCardByHuman(picked, deck, hands):
+def AskCardByHuman(hitman, deck, hands):
     '''
     Ask a card as a human player
     
     This function return a player ID as next turn's hitman
     '''
-    nextPicked = picked
+    nextPicked = hitman
     nAskHand = None
     while (nAskHand not in ['1', '2', '3']):
         if (nAskHand != None):
@@ -262,7 +262,7 @@ def AskCardByHuman(picked, deck, hands):
     
     ## List all ranks
     rank = []
-    for card in hands[picked]:
+    for card in hands[hitman]:
         if (card[:1] not in rank):
             rank.append(card[:1])
         
@@ -275,33 +275,33 @@ def AskCardByHuman(picked, deck, hands):
         nAskCard = raw_input('What rank are you seeking?(' + ','.join(rank) + ')')
 
     ## Deal Target & Fishing
-    if not DealTarget(picked, int(nAskHand), nAskCard, hands):
-        if  not DealFishing(picked, nAskCard, deck, hands):
+    if not DealTarget(hitman, int(nAskHand), nAskCard, hands):
+        if  not DealFishing(hitman, nAskCard, deck, hands):
             nextPicked = nAskHand
 
     return nextPicked
         
-def DealTarget(picked, askedHand, askedCard, hands):
+def DealTarget(hitman, target, askedRank, hands):
     '''
     Dealing with a targeted player & card
     '''    
     success = False
     
-    ShowMessage("TARGET: Player " + str(askedHand) + " is being targeted for the rank <" + str(askedCard) + ">")
+    ShowMessage("TARGET: Player " + str(target) + " is being targeted for the rank <" + str(askedRank) + ">")
     
-    print "Checking Cards " + ",".join(hands[askedHand])
+    print "Checking Cards " + ",".join(hands[target])
     transfered = []
-    for item in hands[askedHand]:
+    for item in hands[target]:
         print "Checking " + item
-        if (item[:1] == askedCard):
-            print item + " met " + str(askedCard)
+        if (item[:1] == askedRank):
+            print item + " met " + str(askedRank)
             success = True
-            hands[picked].append(item)
+            hands[hitman].append(item)
             transfered.append(item)
     
     ## Remove transfered cards from target
     for item in transfered:
-        hands[askedHand].remove(item)
+        hands[target].remove(item)
         
     if success:
         ## Display success message        
@@ -309,7 +309,7 @@ def DealTarget(picked, askedHand, askedCard, hands):
         
     return success
 
-def DealFishing(picked, askedCard, deck, hands):
+def DealFishing(hitman, askedRank, deck, hands):
     '''
     Fish a card from the deck
     '''
@@ -318,18 +318,18 @@ def DealFishing(picked, askedCard, deck, hands):
     
     ## Fished a card from the deck
     fished = deck.pop()
-    hands[picked].append(fished)
+    hands[hitman].append(fished)
     
-    ## If fished card == askedCard
-    if (fished[:1] == askedCard):        
+    ## If fished card == askedRank
+    if (fished[:1] == askedRank):        
         success = True
         
     if success:
         ## Display successed fished message
-        ShowMessage("HIT: LUCKILY Player " + str(picked) + " has fished up a rank <" + str(fished[:1]) + ">")
+        ShowMessage("HIT: LUCKILY Player " + str(hitman) + " has fished up a rank <" + str(fished[:1]) + ">")
     else:
         ## Display missed message        
-        if IsHumanPlayer(picked):
+        if IsHumanPlayer(hitman):
             ShowMessage("MISS: You fished up the rank <" + str(fished[:1]) + ">")
         else:
             ShowMessage("MISS")
@@ -337,11 +337,11 @@ def DealFishing(picked, askedCard, deck, hands):
     return success
 
 
-def IsHumanPlayer(picked):
+def IsHumanPlayer(hitman):
     '''
     Check if hitman is a human
     '''
-    return picked == 0
+    return hitman == 0
 
 def DealBooks(hands, books):
     """
@@ -358,9 +358,9 @@ def DealBooks(hands, books):
 
 def FindBooks(cards):
     """
-    Find books in given cards while remove them from cards at the same time
+    Find books and remove book items from cards
     
-    cards: an array of cards
+    cards: card list array
     
     Return found books
     """
