@@ -53,16 +53,14 @@ pHands = DealInitialCards(nPlayers,nCards,sDeck)
 ## Game playing loop
 nTurn = 1
 nPicked = 0
-pBooks = [['6','5','7','2','4','8'],['t'],[],[]]
-ShowGameResult(pBooks)
-sys.exit(0)
-LogCardsInHands(pHands)
+
+##LogCardsInHands(pHands)
 
 while not EndOfCardGame(sDeck, pHands):
     nPicked = DealTurn(nTurn, nPicked, sDeck, pHands)
     DealBooks(pHands, pBooks)
     ShowBooks(pBooks)
-    LogCardsInHands(pHands)
+    ##LogCardsInHands(pHands)
     nTurn += 1
     if not EndOfCardGame(sDeck, pHands):
         raw_input("Press a key to continue")

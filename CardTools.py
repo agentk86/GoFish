@@ -159,14 +159,18 @@ def ShowMessage(msg):
 
     print("****************************************************")
     print(str(msg))
-    print("****************************************************\n")
+    print("****************************************************")
     
     return
 
 def PickRandomCard(cards):
-    '''
-    Pick a card randomly from given cards
-    '''
+    """
+    Pick a card randomly
+    
+    cards: from which card list we will pick the random card.
+    
+    """
+    
     Shuffle(cards)
     for item in cards:
         return item
@@ -176,7 +180,7 @@ def PickRandomPlayer(total, exclude):
     """
     Pick a player randomly.
 
-    total: How many Players (start by 1)
+    total: How many Players
     exclude:  Which palyer should be excluded from being pciked
 
     This function return hitman player's ID/index.
