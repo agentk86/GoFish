@@ -142,11 +142,8 @@ def ShowCards(player,cards):
 
     The function does not return anything.
     """
-    print("\n****************************************************")
-    print("************Player "+str(player)+" has**************")
-    print("****************************************************\n")
 
-    print ' '.join(cards)
+    print "Player "+str(player)+" has: " + ' '.join(cards)
     
     return
 
@@ -174,43 +171,61 @@ def PickRandomCard(cards):
     for item in cards:
         return item
     
-def PickRandomPlayer(total, exclude = None):
+def PickRandomPlayer(total, exclude):
     
     """
     Pick a player randomly.
 
-    total: How many Players
-    exclude:  Which should be excluded from being pciked
+    total: How many Players (start by 1)
+    exclude:  Which palyer should be excluded from being pciked
 
-    This function return picked player's index.
+    This function return picked player's ID/index.
     """
-
-    picked = random.randint(1, total)
-    while(picked is exclude):
-        picked = random.randint(1, total)
-        
-    picked = picked -1
+    ## Decreased by 1 so start player index is 0 
+    picked = random.randint(1, total) - 1
     
+    while(picked is exclude):
+        ## Decreased by 1 so start player index is 0 
+        picked = random.randint(1, total) - 1
+        
+    ## ShowMessage("Player " + str(picked) + " has been randomly picked as targeted")
+
     return picked
 
 def EndOfCardGame(deck, hands):
     '''
+    Check if the game is over
     
+    deck: fishing decks
+    hands: player's cards in hand    
     '''
-    return len(deck) == 0 or len(hands[0]) == 0 or len(hands[1]) == 0 or len(hands[2]) == 0 or len(hands[3]) == 0
+    gameover = (len(deck) == 0 or len(hands[0]) == 0 or len(hands[1]) == 0 or len(hands[2]) == 0 or len(hands[3]) == 0)
+    
+    if gameover:
+        if len(deck) == 0:
+            ShowMessage("GAMEOVER: No more cards left in the deck.")
+        for i, cards in enumerate(hands):
+            if len(cards) == 0:
+                ShowMessage("GAMEOVER: Player " + str(i) + " has no more cards left in his/her hand.")
+                
+    return gameover
 
 def DealTurn(turn, picked, deck, hands):  
     '''
-    
+    Deal a turn
     '''
     ShowMessage("TURN " + str(turn) + ": Player " + str(picked) + ", its your turn")
-    Sort(hands[picked])
-    ShowCards(picked, hands[picked])
     
+    ## Show the card if hitman is a human player
     if IsHumanPlayer(picked):
-        nextTurn = AskCardByHuman(picked, deck, hands)
+        Sort(hands[int(picked)])
+        ShowCards(picked, hands[int(picked)])
+    
+    ## Process this turn 
+    if IsHumanPlayer(picked):
+        nextTurn = AskCardByHuman(int(picked), deck, hands)
     else:
-        nextTurn = AskCardByComputer(picked, deck, hands)
+        nextTurn = AskCardByComputer(int(picked), deck, hands)
     
     return nextTurn
     
@@ -218,13 +233,16 @@ def AskCardByComputer(picked, deck, hands):
     '''
     Ask a card as a computer player
     '''
-    
+    ## By default picked player of next turn will still be current hitman
     nextPicked = picked
+    
+    ## Randomly pick something
     nAskHand = PickRandomPlayer(len(hands), picked)
     nAskCard = PickRandomCard(hands[picked])
     
-    if not DealAskedCard(picked, nAskHand, nAskCard, hands):
-        if  not DealFishCard(picked, nAskCard, deck, hands):
+    ## Deal Target & Fishing
+    if not DealTarget(picked, int(nAskHand), nAskCard[:1], hands):
+        if  not DealFishing(picked, nAskCard[:1], deck, hands):
             nextPicked = nAskHand
             
     return nextPicked
@@ -232,80 +250,184 @@ def AskCardByComputer(picked, deck, hands):
 def AskCardByHuman(picked, deck, hands):
     '''
     Ask a card as a human player
+    
+    This function return a player ID as next turn's hitman
     '''
     nextPicked = picked
     nAskHand = None
     while (nAskHand not in ['1', '2', '3']):
         if (nAskHand != None):
-            print ("Invalid input. Please try again.")
+            print ("Error: Must type a valid player id (from 1 to 3)")
         nAskHand = raw_input('Who do you want to ask? (1-3)?')
     
+    ## List all ranks
+    rank = []
+    for card in hands[picked]:
+        if (card[:1] not in rank):
+            rank.append(card[:1])
+        
+    ## Get input    
     nAskCard = None
-    while (nAskCard not in hands[picked]):
+    while (nAskCard not in rank):
         if (nAskCard != None):
-            print ("Invalid input. Please try again")
-        nAskCard = raw_input('What rank are you seeking?(' + ' '.join(hands[picked]) + ')')
-    
-    if not DealAskedCard(picked, nAskHand, nAskCard, hands):
-        if  not DealFishCard(picked, nAskCard, deck, hands):
+            print ("Error: Must type one of the following valid single character card ranks")
+            print ",".join(rank)
+        nAskCard = raw_input('What rank are you seeking?(' + ','.join(rank) + ')')
+
+    ## Deal Target & Fishing
+    if not DealTarget(picked, int(nAskHand), nAskCard, hands):
+        if  not DealFishing(picked, nAskCard, deck, hands):
             nextPicked = nAskHand
 
     return nextPicked
         
-def DealAskedCard(picked, askedHand, askedCard, hands):
+def DealTarget(picked, askedHand, askedCard, hands):
     '''
-    Dealing with asked a card
-    '''
+    Dealing with a targeted player & card
+    '''    
     success = False
     
-    ShowMessage("TARGET: Player " + str(picked) + " is being targeted for the rank <" + str(askedCard[:1]) + ">")
+    ShowMessage("TARGET: Player " + str(askedHand) + " is being targeted for the rank <" + str(askedCard) + ">")
     
+    print "Checking Cards " + ",".join(hands[askedHand])
+    transfered = []
     for item in hands[askedHand]:
-        if (item[:1] == askedCard[:1]):
+        print "Checking " + item
+        if (item[:1] == askedCard):
+            print item + " met " + str(askedCard)
             success = True
             hands[picked].append(item)
-            hands[askedHand].remote(item)
+            transfered.append(item)
     
+    ## Remove transfered cards from target
+    for item in transfered:
+        hands[askedHand].remove(item)
+        
     if success:
-        ## TODO:Display success message        
-        ShowMessage("Test")
-    else:
-        ## TODO:Display missed message
-        ShowMessage("Test")
+        ## Display success message        
+        ShowMessage("HIT: " + str(len(transfered)) + " card(s) transferred")
         
     return success
 
-def DealFishCard(picked, askedCard, deck, hands):
+def DealFishing(picked, askedCard, deck, hands):
     '''
     Fish a card from the deck
     '''
+    ## By default, assumed its not success
     success = False
+    
+    ## Fished a card from the deck
     fished = deck.pop()
     hands[picked].append(fished)
-    if (fished[:1] == askedCard[:1]):        
+    
+    ## If fished card == askedCard
+    if (fished[:1] == askedCard):        
         success = True
         
     if success:
-        ## TODO:Display successed message
-        ShowMessage("Test")
+        ## Display successed fished message
+        ShowMessage("HIT: LUCKILY Player " + str(picked) + " has fished up a rank <" + str(fished[:1]) + ">")
     else:
-        ## TODO:Display missed message        
-        ShowMessage("Test")
+        ## Display missed message        
+        if IsHumanPlayer(picked):
+            ShowMessage("MISS: You fished up the rank <" + str(fished[:1]) + ">")
+        else:
+            ShowMessage("MISS")
         
     return success
 
 
 def IsHumanPlayer(picked):
     '''
-    Check if given player is a human
+    Check if hitman is a human
     '''
     return picked == 0
 
-def ShowGameResult(hands):
-    '''
-    Compute game result and display it
-    '''
+def DealBooks(hands, books):
+    """
+    Check players books in hand
+    """
+    ## GetSetGameResult.books = []
+    ##print "DealBooks Start"
+    ##print locals()
+    for index in range(0, len(hands) -1):
+        books[index] += FindBooks(hands[index])
+    ##print "DealBooks End"
+    ##print locals()
+    return
+
+def FindBooks(cards):
+    """
+    Find books in given cards while remove them from cards at the same time
     
+    cards: an array of cards
+    
+    Return found books
+    """
+    books = []
+    
+    for card in cards:
+        if (len([elem for elem in cards if elem[:1] == card[:1]]) == 4):
+            ## Found a book
+            if (card[:1] not in books):
+                books.append(card[:1])
+
+    ## Remove cards already booked
+    for book in books:
+        for matched in ([elem for elem in cards if elem[:1] == book]):
+            cards.remove(matched)
+
+    return books
+
+def ShowBooks(books):
+    """
+    
+    """
+    
+    ShowMessage("BOOKS")
+    
+    for i, book in enumerate(books):
+        print "Player " + str(i) + ":" + "[" + ",".join(book) + "]"
+    
+    return
+
+def ShowGameResult(books):
+    """
+    Show game winners
+    
+    books: books in players hand
+    
+    This function does not return anything
+    """
     ShowMessage("Game Result")
+    
+    mostBook = [0,0,0,0]
+    winners = []
+    
+    for i, book in enumerate(books):
+        mostBook[i] = len(book)
+        
+    if (max(mostBook) > 0):
+        for i, most in enumerate(mostBook):
+            if (most == max(mostBook)):
+                winners.append(i)
+    
+    if len(winners) > 0:        
+        print "*************Winner(s)*************"
+        print ",".join(["Player " + str(s) for s in winners])
+        print "CONGRATULATIONS!!"
+        print "***********************************"
+    
+    return
+
+def LogCardsInHands(hands):
+    """
+    Show cards in players hand
+    """
+    ShowMessage("Logs")
+    
+    for i, cards in enumerate(hands):
+        Sort(cards)
+        print "Player " + str(i) + ": " + ",".join(cards)
     
     return
