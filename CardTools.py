@@ -293,7 +293,6 @@ def DealTarget(hitman, target, askedRank, hands):
     
     ShowMessage("TARGET: Player " + str(target) + " is being targeted for the rank <" + str(askedRank) + ">")
     
-    print "Checking Cards " + ",".join(hands[target])
     transfered = []
     for item in hands[target]:
         if (item[:1] == askedRank):
