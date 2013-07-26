@@ -53,6 +53,7 @@ pHands = DealInitialCards(nPlayers,nCards,sDeck)
 ## Game playing loop
 nTurn = 1
 nPicked = 0
+pBooks = [[],[],[],[]]
 
 ##LogCardsInHands(pHands)
 
