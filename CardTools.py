@@ -296,9 +296,7 @@ def DealTarget(hitman, target, askedRank, hands):
     print "Checking Cards " + ",".join(hands[target])
     transfered = []
     for item in hands[target]:
-        print "Checking " + item
         if (item[:1] == askedRank):
-            print item + " met " + str(askedRank)
             success = True
             hands[hitman].append(item)
             transfered.append(item)
