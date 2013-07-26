@@ -400,7 +400,7 @@ def ShowGameResult(books):
     
     This function does not return anything
     """
-    ShowMessage("Game Result")
+    ## ShowMessage("Game Result")
     
     mostBook = [0,0,0,0]
     winners = []

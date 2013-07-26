@@ -56,14 +56,15 @@ nPicked = 0
 pBooks = [[],[],[],[]]
 
 ##LogCardsInHands(pHands)
-
-while not EndOfCardGame(sDeck, pHands):
+bEnd = EndOfCardGame(sDeck, pHands)
+while not bEnd:
     nPicked = DealTurn(nTurn, nPicked, sDeck, pHands)
     DealBooks(pHands, pBooks)
     ShowBooks(pBooks)
     ##LogCardsInHands(pHands)
     nTurn += 1
-    if not EndOfCardGame(sDeck, pHands):
+    bEnd = EndOfCardGame(sDeck, pHands)
+    if not bEnd:
         raw_input("Press a key to continue")
 
 ShowGameResult(pBooks)
